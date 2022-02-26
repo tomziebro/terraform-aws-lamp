@@ -10,8 +10,8 @@ resource "aws_key_pair" "generated_key" {
 
   provisioner "local-exec" { #Generates "terraform-key-pair.pem" in current directory
     command = <<-EOT
-      echo '${tls_private_key.dev_key.private_key_pem}' > ./terraform-key-pair.pem
-      chmod 400 ./terraform-key-pair.pem
+      echo '${tls_private_key.dev_key.private_key_pem}' > ~/"${var.generated_key_name}".pem
+      chmod 400 ~/"${var.generated_key_name}".pem
     EOT
   }
 }
