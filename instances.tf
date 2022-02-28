@@ -1,18 +1,15 @@
 #Create SSH Keys
-resource "tls_private_key" "dev_key" {
+resource "tls_private_key" "pk" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-resource "aws_key_pair" "generated_key" {
-  key_name   = var.generated_key_name
-  public_key = tls_private_key.dev_key.public_key_openssh
+resource "aws_key_pair" "kp" {
+  key_name   = "ec2-key-pair"      
+  public_key = tls_private_key.pk.public_key_openssh
 
-  provisioner "local-exec" { #Generates "terraform-key-pair.pem" in current directory
-    command = <<-EOT
-      echo '${tls_private_key.dev_key.private_key_pem}' > ~/"${var.generated_key_name}".pem
-      chmod 400 ~/"${var.generated_key_name}".pem
-    EOT
+  provisioner "local-exec" {
+    command = "echo '${tls_private_key.pk.private_key_pem}' > ~/ec2-key-pair.pem; chmod 400 ~/ec2-key-pair.pem"
   }
 }
 
@@ -25,7 +22,7 @@ data "template_file" "user_data" {
 resource "aws_instance" "lamp_webserver_instance" {
   ami                         = var.ami
   instance_type               = "t2.micro"
-  key_name                    = var.generated_key_name
+  key_name                    = "ec2-key-pair"
   vpc_security_group_ids      = ["${aws_security_group.webserver_security_group.id}"]
   subnet_id                   = aws_subnet.lampvpc_public_subnet.id
   associate_public_ip_address = true
